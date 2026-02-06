@@ -8,7 +8,6 @@ import com.example.sparta.repository.OrderLineRepository;
 import com.example.sparta.repository.OrderRepository;
 import com.example.sparta.repository.ProductRepository;
 import com.example.sparta.dto.OrderCreateRequest;
-import com.example.sparta.util.OrderServiceSupport;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,30 +15,34 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
+
 @Service
 @RequiredArgsConstructor
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final OrderLineRepository orderLineRepository;
-
     private final ProductRepository productRepository;
+    private final OrderLineRepository orderLineRepository;
 
 
     @Transactional
     public Order create(OrderCreateRequest request) {
-        // 주문 생성
+        // 주문 데이터 생성
         Order order = orderRepository.save(new Order(request.getTotalPrice()));
 
-        // 주문 요청한 상품의 ID 리스트
-        List<Long> productIds = request.getOrderLines().stream()
-                .map(OrderLineRequest::getProductId)
-                .toList();
+        List<OrderLine> orderLineList = new ArrayList<>();
+        for (OrderLineRequest olr : request.getOrderLines()) {
+            Product product = productRepository.findById(olr.getProductId())
+                    .orElseThrow(() -> new RuntimeException("존재하지 않는 상품은 주문할 수 없습니다 !"));
 
-        // 주문 요청한 상품 리스트 조회
-        List<Product> products = productRepository.findByIdIn(productIds);
-        List<OrderLine> orderLineList = OrderServiceSupport.buildOrderLines(products, request.getOrderLines(), order);
+            // 상품 구매 처리
+            product.purchased(olr.getAmount());
+
+            // 주문 상세 데이터 생성
+            orderLineList.add(new OrderLine(order, product, olr.getAmount()));
+        }
         orderLineRepository.saveAll(orderLineList);
         return order;
     }
+
 }

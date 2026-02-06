@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +23,9 @@ public class Order {
 
     @Column(name = "total_price")
     private Long totalPrice;   // 총 주문 금액
+
+    @Column
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     public Order(Long totalPrice) {
         this.totalPrice = totalPrice;

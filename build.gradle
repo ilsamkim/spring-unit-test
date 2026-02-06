@@ -41,6 +41,10 @@ dependencies {
 
     // AssertJ (가독성 좋은 검증 API)
     testImplementation 'org.assertj:assertj-core:3.26.0'
+
+    //h2
+    testImplementation 'com.h2database:h2'
+
 }
 
 tasks.named('test') {
